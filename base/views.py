@@ -17,6 +17,7 @@ def get_tasks(request):
     except Exception as e:
         logger.warning(str(e))
         return JsonResponse({"success":False,"info":"Cannot fetch Tasks now"})
+    
 
 @csrf_exempt
 @check_fields
