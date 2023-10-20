@@ -20,7 +20,7 @@ def get_tasks(request):
     
 
 @csrf_exempt
-@check_fields
+@check_fields(["title","description"])
 @sanitize
 @optimized_execution
 def create_task(request):

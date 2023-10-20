@@ -8,35 +8,34 @@ import bleach
 import time
 
 
-def check_fields(view_func):
-    @wraps(view_func)
-    def wrapped_view(request, *args, **kwargs):
-        if request.method in ["POST", "GET"]:
-            try:
-                request_data = json.loads(request.body)
-            except Exception as e:
-                logger.warning(str(e))
-                return JsonResponse(
-                    {"success": False, "info": "Unable to fetch request data"}
-                )
+def check_fields(required_fields):
+    def checker(view_func):
+        @wraps(view_func)
+        def wrapped_view(request, *args, **kwargs):
+            if request.method in ["POST", "GET"]:
+                try:
+                    request_data = json.loads(request.body)
+                except Exception as e:
+                    logger.warning(str(e))
+                    return JsonResponse(
+                        {"success": False, "info": "Unable to fetch request data"}
+                    )
 
-            # Check if the 'description' and title keys exists in the request data and is not empty.
-            if "description" not in request_data or not request_data["description"]:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "info": "Description is required and cannot be empty",
-                    }
-                )
+                # Check if the required fields are present and not empty in the request data.
+                for field in required_fields:
+                    if field not in request_data or not request_data[field]:
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "info": f"{field} is required and cannot be empty",
+                            }
+                        )
 
-            if "title" not in request_data or not request_data["title"]:
-                return JsonResponse(
-                    {"success": False, "info": "Title is required and cannot be empty"}
-                )
+            return view_func(request, *args, **kwargs)
 
-        return view_func(request, *args, **kwargs)
+        return wrapped_view
 
-    return wrapped_view
+    return checker
 
 
 # TODO:update this function
