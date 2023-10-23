@@ -60,24 +60,27 @@ def post_only(view_func):
     return wrapped
 
 
-def sanitize(view_func):
-    def wrapped_view(request, *args, **kwargs):
-        if request.method in ["POST", "GET"]:
-            try:
-                request_data = json.loads(request.body)
-            except Exception as e:
-                logger.warning(str(e))
-                return JsonResponse(
-                    {"success": False, "info": "Unable to fetch request data"}
-                )
+def sanitize(field_names):
+    def decorator(view_func):
+        def wrapped_view(request, *args, **kwargs):
+            if request.method in ["POST", "GET"]:
+                try:
+                    request_data = json.loads(request.body)
+                except Exception as e:
+                    logger.warning(str(e))
+                    return JsonResponse(
+                        {"success": False, "info": "Unable to fetch request data"}
+                    )
 
-            # Sanitize the 'title' and 'description' fields and assign them back to request_data
-            request_data["title"] = bleach.clean(request_data.get("title"))
-            request_data["description"] = bleach.clean(request_data.get("description"))
+                # Sanitize the specified fields in the request_data dictionary
+                for field_name in field_names:
+                    request_data[field_name] = bleach.clean(request_data.get(field_name))
 
-        return view_func(request, *args, **kwargs)
+            return view_func(request, *args, **kwargs)
 
-    return wrapped_view
+        return wrapped_view
+
+    return decorator
 
 
 def timed(inner_func):
