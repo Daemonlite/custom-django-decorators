@@ -2,7 +2,7 @@ from django.shortcuts import render
 from base.models import Task
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .decorators import check_fields,sanitize,timed,optimized_execution
+from .decorators import *
 import logging
 import json
 logger = logging.getLogger(__name__)
@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @timed
+@get_only
 def get_tasks(request):
     try:
         tasks = Task.objects.values("title","description","complete")
@@ -23,6 +24,7 @@ def get_tasks(request):
 @check_fields(["title","description"])
 @sanitize
 @optimized_execution
+@post_only
 def create_task(request):
     try:
         data = json.loads(request.body)

@@ -20,16 +20,19 @@ def check_fields(required_fields):
                     return JsonResponse(
                         {"success": False, "info": "Unable to fetch request data"}
                     )
-
+            else:
+                return JsonResponse(
+                    {"success": False, "info": "Requests method is not allowed"}
+                )
                 # Check if the required fields are present and not empty in the request data.
-                for field in required_fields:
-                    if field not in request_data or not request_data[field]:
-                        return JsonResponse(
-                            {
-                                "success": False,
-                                "info": f"{field} is required and cannot be empty",
-                            }
-                        )
+            for field in required_fields:
+                if field not in request_data or not request_data[field]:
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "info": f"{field} is required and cannot be empty",
+                        }
+                    )
 
             return view_func(request, *args, **kwargs)
 
@@ -38,7 +41,25 @@ def check_fields(required_fields):
     return checker
 
 
-# TODO:update this function
+def get_only(view_func):
+    def wrapped(request,*args,**kwargs):
+        if request.method != 'GET':
+            return JsonResponse(
+                {"success": False, "info": "Request method is not allowed"}
+            )
+        return view_func(request,*args,**kwargs)
+    return wrapped
+
+def post_only(view_func):
+    def wrapped(request,*args,**kwargs):
+        if request.method != 'POST':
+            return JsonResponse(
+                {"success": False, "info": "Request method is not allowed"}
+            )
+        return view_func(request,*args,**kwargs)
+    return wrapped
+
+
 def sanitize(view_func):
     def wrapped_view(request, *args, **kwargs):
         if request.method in ["POST", "GET"]:
